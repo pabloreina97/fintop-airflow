@@ -40,12 +40,12 @@ jobs:
       - name: Transfer files to Raspberry Pi
         run: |
           scp deployment.tar.gz \
-            ${{ secrets.RASPBERRY_USER }}@${{ secrets.RASPBERRY_HOST }}:~/fintop-airflow/
+            ${{ secrets.RASPBERRY_USER }}@${{ secrets.RASPBERRY_HOST }}:~/projects/fintop-airflow/
 
       - name: Deploy on Raspberry Pi
         run: |
           ssh ${{ secrets.RASPBERRY_USER }}@${{ secrets.RASPBERRY_HOST }} << 'EOF'
-            cd ~/fintop-airflow
+            cd ~/projects/fintop-airflow
             tar -xzf deployment.tar.gz
             rm deployment.tar.gz
             chmod +x scripts/deploy.sh
@@ -55,7 +55,7 @@ jobs:
       - name: Verify deployment
         run: |
           ssh ${{ secrets.RASPBERRY_USER }}@${{ secrets.RASPBERRY_HOST }} << 'EOF'
-            cd ~/fintop-airflow
+            cd ~/projects/fintop-airflow
             docker compose -f docker/docker-compose.prod.yml ps
             sleep 10
             curl -f http://localhost:8080/health || exit 1
