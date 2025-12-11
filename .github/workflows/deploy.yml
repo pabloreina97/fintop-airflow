@@ -1,0 +1,55 @@
+name: Deploy to Raspberry Pi
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    needs: []
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.RASPBERRY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create deployment package
+        run: |
+          tar -czf deployment.tar.gz \
+            dags/ \
+            plugins/ \
+            docker/ \
+            scripts/ \
+            requirements.txt
+
+      - name: Transfer files to Raspberry Pi
+        run: |
+          scp deployment.tar.gz \
+            ${{ secrets.RASPBERRY_USER }}@${{ secrets.RASPBERRY_HOST }}:~/fintop-airflow/
+
+      - name: Deploy on Raspberry Pi
+        run: |
+          ssh ${{ secrets.RASPBERRY_USER }}@${{ secrets.RASPBERRY_HOST }} << 'EOF'
+            cd ~/fintop-airflow
+            tar -xzf deployment.tar.gz
+            rm deployment.tar.gz
+            chmod +x scripts/deploy.sh
+            ./scripts/deploy.sh
+          EOF
+
+      - name: Verify deployment
+        run: |
+          ssh ${{ secrets.RASPBERRY_USER }}@${{ secrets.RASPBERRY_HOST }} << 'EOF'
+            cd ~/fintop-airflow
+            docker compose -f docker/docker-compose.prod.yml ps
+            sleep 10
+            curl -f http://localhost:8080/health || exit 1
+          EOF

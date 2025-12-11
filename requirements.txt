@@ -1,0 +1,15 @@
+# Apache Airflow
+apache-airflow==2.8.1
+
+# Providers
+apache-airflow-providers-http==4.8.0
+apache-airflow-providers-sqlite==3.5.0
+
+# ETL dependencies
+pandas==2.1.4
+requests==2.31.0
+sqlalchemy==1.4.51
+
+# Utilities
+python-dotenv==1.0.0
+tenacity==8.2.3
