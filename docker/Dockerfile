@@ -3,7 +3,7 @@ FROM apache/airflow:2.8.1-python3.11
 
 # Variables de entorno optimizadas para Raspberry Pi
 ENV AIRFLOW__CORE__LOAD_EXAMPLES=False \
-    AIRFLOW__CORE__EXECUTOR=LocalExecutor \
+    AIRFLOW__CORE__EXECUTOR=SequentialExecutor \
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////opt/airflow/airflow.db \
     AIRFLOW__WEBSERVER__WORKERS=2 \
     AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=30 \
