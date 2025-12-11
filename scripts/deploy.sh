@@ -3,6 +3,11 @@ set -e
 
 echo "=== Iniciando deploy en Raspberry Pi ==="
 
+# Cargar variables de entorno
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
 COMPOSE_FILE="docker/docker-compose.prod.yml"
 BACKUP_DIR="backups/$(date +%Y%m%d_%H%M%S)"
 
@@ -19,15 +24,15 @@ fi
 
 # Detener servicios actuales
 echo ">>> Deteniendo servicios..."
-docker compose -f "$COMPOSE_FILE" down || true
+docker compose --env-file .env -f "$COMPOSE_FILE" down || true
 
 # Construir nuevas imágenes
 echo ">>> Construyendo imagen Docker..."
-docker compose -f "$COMPOSE_FILE" build
+docker compose --env-file .env -f "$COMPOSE_FILE" build
 
 # Iniciar servicios
 echo ">>> Iniciando servicios..."
-docker compose -f "$COMPOSE_FILE" up -d
+docker compose --env-file .env -f "$COMPOSE_FILE" up -d
 
 # Esperar a que los servicios estén listos
 echo ">>> Esperando a que Airflow esté listo..."
@@ -35,7 +40,7 @@ sleep 30
 
 # Verificar estado
 echo ">>> Estado de los servicios:"
-docker compose -f "$COMPOSE_FILE" ps
+docker compose --env-file .env -f "$COMPOSE_FILE" ps
 
 # Limpiar imágenes antiguas
 echo ">>> Limpiando imágenes antiguas..."
