@@ -9,11 +9,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
-    needs: []
 
     steps:
-      - uses: actions/checkout@v4
-
       - name: Set up Tailscale
         uses: tailscale/github-action@v2
         with:
@@ -28,26 +25,17 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.RASPBERRY_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Create deployment package
-        run: |
-          tar -czf deployment.tar.gz \
-            dags/ \
-            plugins/ \
-            docker/ \
-            scripts/ \
-            requirements.txt
-
-      - name: Transfer files to Raspberry Pi
-        run: |
-          scp deployment.tar.gz \
-            ${{ secrets.RASPBERRY_USER }}@${{ secrets.RASPBERRY_HOST }}:~/projects/fintop-airflow/
-
-      - name: Deploy on Raspberry Pi
+      - name: Git pull
         run: |
           ssh ${{ secrets.RASPBERRY_USER }}@${{ secrets.RASPBERRY_HOST }} << 'EOF'
             cd ~/projects/fintop-airflow
-            tar -xzf deployment.tar.gz
-            rm deployment.tar.gz
+            git pull origin main
+          EOF
+
+      - name: Deploy
+        run: |
+          ssh ${{ secrets.RASPBERRY_USER }}@${{ secrets.RASPBERRY_HOST }} << 'EOF'
+            cd ~/projects/fintop-airflow
             chmod +x scripts/deploy.sh
             ./scripts/deploy.sh
           EOF
