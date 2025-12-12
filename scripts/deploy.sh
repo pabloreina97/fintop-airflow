@@ -22,17 +22,9 @@ if [ -f "airflow.db" ]; then
     echo "    Backup guardado en $BACKUP_DIR"
 fi
 
-# Detener servicios actuales
-echo ">>> Deteniendo servicios..."
-docker compose --env-file .env -f "$COMPOSE_FILE" down || true
-
-# Construir nuevas imágenes
-echo ">>> Construyendo imagen Docker..."
-docker compose --env-file .env -f "$COMPOSE_FILE" build
-
-# Iniciar servicios
-echo ">>> Iniciando servicios..."
-docker compose --env-file .env -f "$COMPOSE_FILE" up -d
+# Reiniciar servicios (sin rebuild, usa cache)
+echo ">>> Reiniciando servicios..."
+docker compose --env-file .env -f "$COMPOSE_FILE" up -d --force-recreate
 
 # Esperar a que los servicios estén listos
 echo ">>> Esperando a que Airflow esté listo..."
